@@ -119,6 +119,7 @@ def main():
         raise FileNotFoundError("Nenhum arquivo encontrado.")
     frames: List[pd.DataFrame] = []
     for p in paths:
+        print(f"Processing {p}...")
         try:
             frames.append(sanitize_one(p))
         except Exception as e:
@@ -127,8 +128,8 @@ def main():
         raise RuntimeError("Falha na sanitizacao de todos os arquivos.")
     out = pd.concat(frames, ignore_index=True)
     os.makedirs(args.out, exist_ok=True)
-    out_path = os.path.join(args.out, "vra_clean_base.parquet")
-    out.to_parquet(out_path, index=False)
+    out_path = os.path.join(args.out, "vra_clean_base.csv")
+    out.to_csv(out_path, index=False)
     print(out_path)
 
 if __name__ == "__main__":
