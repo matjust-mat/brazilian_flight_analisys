@@ -31,7 +31,13 @@ TARGETS: Dict[str, str] = {
 
 def _fix_mojibake(s: str) -> str:
     """
-    Corrige problemas de codificação de caracteres (mojibake).
+    Attempts to fix mojibake (garbled text) caused by incorrect encoding.
+    Tries to re-encode the input string from 'latin1' and decode it as 'utf-8'.
+    If the conversion fails, returns the original string unchanged.
+    Args:
+        s (str): The input string that may contain mojibake.
+    Returns:
+        str: The corrected string if conversion is successful, otherwise the original string.
     """
     try:
         return s.encode("latin1").decode("utf-8")
@@ -40,7 +46,13 @@ def _fix_mojibake(s: str) -> str:
 
 def _canon(s: str) -> str:
     """
-    Canonicaliza o nome da coluna.
+    Normalizes and cleans up a string by fixing encoding issues, trimming whitespace and quotes,
+    removing BOM characters, converting to lowercase, and replacing specific known mojibake substrings
+    with their correct forms.
+    Args:
+        s (str): The input string to be normalized.
+    Returns:
+        str: The cleaned and normalized string.
     """
     s = _fix_mojibake(s).strip().strip('"').replace("\ufeff","").lower()
     s = (s.replace("empresa aã©rea","empresa aérea")
@@ -57,12 +69,12 @@ ORDER = [
 
 def sanitize_one(path: str) -> pd.DataFrame:
     """
-    Sanitiza um arquivo CSV da ANAC VRA.
-    Retorna um DataFrame com as colunas renomeadas e selecionadas.
-    Lança ValueError se nenhuma coluna-alvo for encontrada.
-    Lança FileNotFoundError se o arquivo não existir.
-    Lança pd.errors.ParserError se o arquivo não puder ser lido.
-    12 colunas alvo:
+    Sanitizes an ANAC VRA CSV file.
+    Returns a DataFrame with renamed and selected columns.
+    Raises ValueError if no target column is found.
+    Raises FileNotFoundError if the file does not exist.
+    Raises pd.errors.ParserError if the file cannot be read.
+    12 target columns:
     - airline_icao
     - flight_number
     - auth_code_di
@@ -76,10 +88,10 @@ def sanitize_one(path: str) -> pd.DataFrame:
     - flight_status
     - justification_code
 
-    1 coluna adicional:
-    - source_file: nome do arquivo de origem
+    1 additional column:
+    - source_file: name of the source file
 
-    13 colunas no total.
+    13 columns in total.
     """
     df = pd.read_csv(path, sep=";", quotechar='"', encoding="latin1", dtype=str, skiprows=1, engine="python")
     rename_map = {}
